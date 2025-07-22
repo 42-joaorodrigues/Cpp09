@@ -4,10 +4,6 @@
 ![C++ Badge](https://img.shields.io/badge/Language-C++-blue)
 ![Status Badge](https://img.shields.io/badge/Status-In_Progress-yellow)
 
-## Project Details
-
-For full project requirements, see the [Subject File](./subject.md).
-
 ## Current Progress
 
 ### ✅ Exercise 00: Bitcoin Exchange (In Progress)
