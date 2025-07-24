@@ -12,6 +12,7 @@ public:
     ~BitcoinExchange();
 
     // Actions
+    float   getRate(const std::string& date);
     void    processInput(const std::string& input_file);
 };
 

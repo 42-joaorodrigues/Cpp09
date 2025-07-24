@@ -36,7 +36,7 @@ BitcoinExchange::BitcoinExchange(const std::string& db_file) {
 
 BitcoinExchange::~BitcoinExchange() {}
 
-bool	isValidDate(const std::string& date, const std::string& err_msg) {
+static bool	isValidDate(const std::string& date, const std::string& err_msg) {
 	// date format
 	if (date.length() != 10 || date[4] != '-' || date[7] != '-') {
 		std::cerr << err_msg << "Invalid date format." << std::endl;
@@ -81,11 +81,48 @@ bool	isValidDate(const std::string& date, const std::string& err_msg) {
 	return true;
 }
 
-bool	isValidValue(const std::string& value_str, const std::string& err_msg) {
-	try {
-		size_t		idx;
-		std::string	value = std::stod()
+// Safely convert str to double, replicating stod()
+static bool	safeStrToDouble(const std::string& str, double& out) {
+	const char* cstr = str.c_str();
+	char* end_ptr;
+	out = strtod(cstr, &end_ptr);
+	if (cstr == end_ptr)
+		return false;
+	while (*end_ptr) {
+		if (!std::isspace(static_cast<unsigned char>(*end_ptr)))
+			return false;
+		end_ptr++;
 	}
+	return true;
+}
+
+static bool	isValidValue(const std::string& value_str, const std::string& err_msg) {
+	double	val;
+	// try to convert value
+	if (!safeStrToDouble(value_str, val)) {
+		std::cerr << err_msg << "Couldn't parse value." << std::endl;
+		return false;
+	}
+	// check if positive
+	if (val < 0) {
+		std::cerr << err_msg << "Value is not positive." << std::endl;
+		return false;
+	}
+	if (val > 1000.0) {
+		std::cerr << err_msg << "Value is too large." << std::endl;
+		return false;
+	}
+	return true;
+}
+
+float BitcoinExchange::getRate(const std::string& date) {
+	std::map<std::string, float>::const_iterator it = _exchange_rates.lower_bound(date);
+	if (it != _exchange_rates.end() && it->first == date)
+		return it->second;
+	if (it == _exchange_rates.begin())
+		return -1;
+	--it;
+	return it->second;
 }
 
 void BitcoinExchange::processInput(const std::string& input_file) {
@@ -103,8 +140,8 @@ void BitcoinExchange::processInput(const std::string& input_file) {
 		// get seperator
 		size_t pos = line.find('|');
 		if (pos == std::string::npos) {
-			std::cerr << "Error: bad input => " << line
-					  << ". No seperator '|' found." << std::endl;
+			std::cerr << "Error: bad input => '" << line
+					  << "' => No seperator '|' found." << std::endl;
 			continue;
 		}
 
@@ -121,5 +158,16 @@ void BitcoinExchange::processInput(const std::string& input_file) {
 		value_str = line.substr(pos + 1);
 		value_str.erase(0, value_str.find_first_not_of(" \t\r\n"));
 		value_str.erase(value_str.find_last_not_of(" \t\r\n") + 1);
+		if (!isValidValue(value_str,"Error: bad input => '" + line + "' => "))
+			continue;
+
+		// final print
+		float value = atof(value_str.c_str());
+		float rate = getRate(date);
+		if (rate < 0) {
+			std::cerr << "Error: no exchange rate found for: " << date << std::endl;
+			continue;
+		}
+		std::cout << date << " => " << value << " = " << value * rate << std::endl;
 	}
 }

@@ -90,7 +90,7 @@ cd CPP_Module_09/ex00
 make
 
 # Run the Bitcoin Exchange
-./btc input.txt
+./btc subject_input.txt
 ```
 
 ## Implementation Highlights
