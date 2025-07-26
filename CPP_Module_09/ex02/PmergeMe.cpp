@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <ctime>
 #include <stdexcept>
 
 bool PmergeMe::isValidInput(const std::string& str) {
@@ -120,10 +121,10 @@ void PmergeMe::run(int argc, char* argv[]) {
 		double vec_time = static_cast<double>(end_vec - start_vec) / CLOCKS_PER_SEC;
 
 		// Sort with deque and measure time
-		start_vec = clock();
+		clock_t start_deq = clock();
 		std::deque<int> deq_vec = dequeSort(_deque);
-		end_vec = clock();
-		double deq_time = static_cast<double>(end_vec - start_vec) / CLOCKS_PER_SEC;
+		clock_t end_deq = clock();
+		double deq_time = static_cast<double>(end_deq - start_deq) / CLOCKS_PER_SEC;
 
 		// Display sorted
 		displaySequence("After: ", sorted_vec);
